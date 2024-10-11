@@ -1,0 +1,42 @@
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Set up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: '3.9'
+
+    - name: Install dependencies
+      run: |
+        sudo apt update
+        sudo apt install -y build-essential git zip unzip libncurses5 libffi-dev libssl-dev libsqlite3-dev liblzma-dev python3-pip
+        pip install --upgrade pip
+        pip install cython==0.29.33  # Ensure the compatible version with Buildozer
+
+    - name: Install Buildozer
+      run: |
+        pip install buildozer
+
+    - name: Build APK
+      run: |
+        buildozer init
+        buildozer -v android debug
+
+    - name: Upload APK
+      uses: actions/upload-artifact@v2
+      with:
+        name: app-debug.apk
+        path: bin/*.apk
